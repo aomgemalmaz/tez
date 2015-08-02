@@ -567,12 +567,11 @@ ARM Macro Assembler    Page 9
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M0+ --apcs=inter
 work --depend=.\flash\startup_mkl25z4.d -o.\flash\startup_mkl25z4.o -I"C:\Users
-\emrmrcn\Google Drive\R&D\Wireless Mesh Networks\tez\code\TIcc1120-2015-07-19\T
-Icc1120\RTE" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include -IC:\Keil_v5\A
-RM\PACK\Keil\Kinetis_KLxx_DFP\1.4.0\Device\Include --predefine="__EVAL SETA 1" 
---predefine="__UVISION_VERSION SETA 514" --predefine="_RTE_ SETA 1" --predefine
-="MKL25Z128xxx4 SETA 1" --list=.\flash\startup_mkl25z4.lst RTE\Device\MKL25Z128
-xxx4\startup_MKL25Z4.s
+\emrmrcn\Desktop\Thesis Codes Github\tez\RTE" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4
+.2.0\CMSIS\Include -IC:\Keil_v5\ARM\PACK\Keil\Kinetis_KLxx_DFP\1.4.0\Device\Inc
+lude --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 514" --pre
+define="_RTE_ SETA 1" --predefine="MKL25Z128xxx4 SETA 1" --list=.\flash\startup
+_mkl25z4.lst RTE\Device\MKL25Z128xxx4\startup_MKL25Z4.s
 
 
 

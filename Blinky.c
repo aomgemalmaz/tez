@@ -49,7 +49,7 @@
 	Aim  : Global registers are defined here
 	NOTE : 
 **********************************************************************/
-char test[11];
+char test[22];
 uint32_t hede;
 /**********************************************************************
 ***********							 Systick					  	*************************
@@ -193,9 +193,9 @@ void TI_WriteByte( char addr,  char data)
 //int dly;
    SpiStart();																										//Start SPI by CSn Low
 	 wait_CHIP_RDYn; 																								//Wait for TI's christal to be stabilized
-	 SPI_Send(addr);																							  // R/w bit (1) + Burst bit (0)+ 6 bit addres
-	 SPI_Send(data);
-	 SpiStop();	                               											// CS=1,  SPI end
+	 SPI_Send(addr);																							  // Send 1 byte addr and write command
+	 SPI_Send(data);																								// Send 1 byte data 
+	 SpiStop();	                               											//Stop SPI by CSn High
 }
 
 /**********************************************************************
@@ -213,57 +213,60 @@ char TI_ReadByte(char addr)
 	 SPI_Send( READ_SINGLE | addr);																  // R/w bit (1) + Burst bit (0)+ 6 bit addres
 	 data = SPI_Send(0x00);             														// Data read (read 1byte data) via dummy write
 	 SpiStop();																											//Stop SPI by CSn High
-	
    return data;    
 }
-/*******************************************************************************/
-/****************************** CC1120 WRITE  BUFFER **********************/
-/*******************************************************************************/
-int TI_Write_buf(unsigned int addrbsb,char* buf,int len)
+/**********************************************************************
+***********							 TI_Write_brst							*******************
+***********************************************************************	
+	Aim  : burst write to TI chip
+	NOTE :[ R/W bit (0)] + [ Burst bit (1)] + [6 bit addres]
+**********************************************************************/
+int TI_Write_brst(char addr,char* buf,int len)
 {
    int i = 0;
-	
-   
-		PTD->PCOR |= (1UL<<4);                             	  // CS=0, SPI start
-		SPI_Send (  (addrbsb & 0x00FF0000)>>16);							// Address byte 1
-		SPI_Send (  (addrbsb & 0x0000FF00)>> 8);	 						// Address byte 2
-		SPI_Send (  (addrbsb & 0x000000F8) + 4);  						// Data write command and Write data length 1
-	
 
-	for(i = 0; i < len; i++)              						  // Write data in loop
-   {
-    SPI_Send (buf[i]);
-   }
+		SpiStart();					                             	  	//Start SPI by CSn Low
+		wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
+		SPI_Send ( WRITE_BURST | addr );											// Send the adrr
+		
+		for(i = 0; i < len; i++)              								// Burst Write the data 
+			 {
+				SPI_Send (buf[i]);
+			 }
 	 
-   PTD->PSOR |= (1UL<<4);                                // CS=1, SPI end
-    
-
-   return len;  
+		 SpiStop();																						//Stop SPI by CSn High
+		 return len;  
 }
 
-/*******************************************************************************/
-/****************************** CC1120 READ  BUFFER ***********************/
-/*******************************************************************************/
-int TI_Read_buf(unsigned int addrbsb, char* buf,int len)
+/**********************************************************************
+***********							 TI_READ_brst							*********************
+***********************************************************************	
+	Aim  : burst read to TI chip
+	NOTE :[ R/W bit (1)] + [ Burst bit (1)] + [6 bit addres]
+**********************************************************************/
+int TI_Read_brst(char addr, char* buf,int len)
 {
-  int i = 0;
- 
-	
-  
-  PTD->PCOR |=(1UL<<4);                                 // CS=0, SPI start
-	
-  SPI_Send ( (addrbsb & 0x00FF0000)>>16);   					// Address byte 1
-  SPI_Send ( (addrbsb & 0x0000FF00)>> 8);   					// Address byte 2
-  SPI_Send ( (addrbsb & 0x000000F8));       					// Data write command and Write data length 1
-  
-	for(i = 0; i < len; i++)                    			  // Write data in loop
-  {
-    buf[i] = SPI_Send(0x00);
-  }
-  PTD->PSOR |= (1UL<<4);                                  // CS=1, SPI end
-                                                                                        
-  return len;
+		int i = 0;
+
+		SpiStart();					                             	  	//Start SPI by CSn Low
+		wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
+		SPI_Send ( READ_BURST | addr );											// Address byte 1
+		
+		for(i = 0; i < len; i++)                    			  // Write data in loop
+			{
+				buf[i] = SPI_Send(0x00);
+			}
+		SpiStop();																						//Stop SPI by CSn High
+																																													
+		return len;
 }
+
+/**********************************************************************
+***********							DelayUs						*********************
+***********************************************************************	
+	Aim  : Blind Delay
+	NOTE : microsecond delay (To be Calibrated)
+**********************************************************************/
 char DelayUs(long t)																
 {
 do
@@ -315,9 +318,28 @@ int main (void)
 		
 	TI_WriteByte(CC112X_IOCFG3,0x87);
 	test[5]=TI_ReadByte(CC112X_IOCFG3);
+	
+	//temp sensor digital readout
+	TI_WriteByte(CC112X_DCFILT_CFG,0x40);
+	TI_WriteByte(CC112X_MDMCFG1 ,0x47);
+	TI_WriteByte(CC112X_CHAN_BW,0x81);
+	TI_WriteByte(CC112X_FREQ_IF_CFG,0x00);
+	TI_WriteByte(CC112X_ATEST,0x2A);
+	TI_WriteByte(CC112X_ATEST_MODE,0x07);
+	TI_WriteByte(CC112X_GBIAS1,0x07);
+	TI_WriteByte(CC112X_PA_IFAMP_TEST,0x01);
+	test[6]=TI_ReadByte(CC112X_CHFILT_I0);
+	test[7]=TI_ReadByte(CC112X_CHFILT_I1);
+	test[8]=TI_ReadByte(CC112X_CHFILT_I2);
+	
 //	Delay(0x2000);
 	while(1)
 	{
+		// Turn on leds 1 by 1 
+	YELLOW_ON; Delay(1000);	GREEN_ON; Delay(1000);	
+		RED_ON; Delay(1000);
+	//Turn off leds
+	YELLOW_OFF;	GREEN_OFF;	RED_OFF;
 //		SpiStart();
 //		hede=PTD->PDIR;
 //		DelayUs(0x1000);

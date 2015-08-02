@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Flash\Blinky.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Flash\Blinky.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Sun Jul 19 17:45:21 2015
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5050106: Last Updated: Mon Aug 03 01:26:35 2015
 <BR><P>
 <H3>Maximum Stack Usage =         24 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -393,8 +393,8 @@ Global Symbols
 </UL>
 
 <P><STRONG><a name="[47]"></a>SPI_Send</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, blinky.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TI_Read_buf
-<LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TI_Write_buf
+<BR><BR>[Called By]<UL><LI><a href="#[4a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TI_Read_brst
+<LI><a href="#[49]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TI_Write_brst
 <LI><a href="#[48]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TI_ReadByte
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TI_WriteByte
 </UL>
@@ -431,17 +431,17 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[37]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[49]"></a>TI_Write_buf</STRONG> (Thumb, 92 bytes, Stack size 16 bytes, blinky.o(.text), UNUSED)
+<P><STRONG><a name="[49]"></a>TI_Write_brst</STRONG> (Thumb, 88 bytes, Stack size 16 bytes, blinky.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI_Send
 </UL>
 
-<P><STRONG><a name="[4a]"></a>TI_Read_buf</STRONG> (Thumb, 90 bytes, Stack size 16 bytes, blinky.o(.text), UNUSED)
+<P><STRONG><a name="[4a]"></a>TI_Read_brst</STRONG> (Thumb, 90 bytes, Stack size 16 bytes, blinky.o(.text), UNUSED)
 <BR><BR>[Calls]<UL><LI><a href="#[47]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI_Send
 </UL>
 
 <P><STRONG><a name="[77]"></a>DelayUs</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, blinky.o(.text), UNUSED)
 
-<P><STRONG><a name="[37]"></a>main</STRONG> (Thumb, 244 bytes, Stack size 0 bytes, blinky.o(.text))
+<P><STRONG><a name="[37]"></a>main</STRONG> (Thumb, 534 bytes, Stack size 0 bytes, blinky.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = main &rArr; SystemCoreClockUpdate &rArr; __ARM_common_switch8
 </UL>
 <BR>[Calls]<UL><LI><a href="#[3e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_uidivmod
