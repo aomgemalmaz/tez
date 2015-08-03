@@ -331,6 +331,7 @@ int main (void)
 	test[6]=TI_ReadByte(CC112X_CHFILT_I0);
 	test[7]=TI_ReadByte(CC112X_CHFILT_I1);
 	test[8]=TI_ReadByte(CC112X_CHFILT_I2);
+//		test[8]=TI_ReadByte(CC112X_CHFILT_I2);
 	
 //	Delay(0x2000);
 	while(1)
