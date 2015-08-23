@@ -158,7 +158,7 @@ char x;
 void TI_HW_Reset(void)
 {
 	PTD->PCOR |= (1UL<<2);
-	Delay(0x5);
+	Delay(0x05);
 	PTD->PSOR |= (1UL<<2);
 }
 
@@ -250,15 +250,28 @@ int TI_Read_brst(char addr, char* buf,int len)
 
 		SpiStart();					                             	  	//Start SPI by CSn Low
 		wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
-		SPI_Send ( READ_BURST | addr );											// Address byte 1
-		
-		for(i = 0; i < len; i++)                    			  // Write data in loop
+		SPI_Send ( READ_BURST | addr );												// Address byte 1
+		for(i = 0; i < len; i++)                    				  // Write data in loop
 			{
-				buf[i] = SPI_Send(0x00);
+				buf[i] = SPI_Send(0x00);													//write data to buffer with size of "len"
 			}
 		SpiStop();																						//Stop SPI by CSn High
-																																													
 		return len;
+}
+
+/**********************************************************************
+***********							 Write TI_Command							*****************
+***********************************************************************	
+	Aim  : command strobe acces
+	NOTE :[ R/W bit (0)] + [ Burst bit (0)] + [6 bit addres]  
+				 No data is expected. Chip_status_Byte is returned from chip
+**********************************************************************/
+void TI_Command( char command )
+{
+    SpiStart();																								//Start SPI by CSn Low
+	  wait_CHIP_RDYn; 																					//Wait for TI's christal to be stabilized
+	  SPI_Send(command);																				//Send chip command
+	  SpiStop();	                               								//Stop SPI by CSn High
 }
 
 /**********************************************************************
@@ -318,7 +331,12 @@ int main (void)
 		
 	TI_WriteByte(CC112X_IOCFG3,0x87);
 	test[5]=TI_ReadByte(CC112X_IOCFG3);
+	TI_Command(CC112X_SRES);				//sofware reset 
 	
+	test[6]=TI_ReadByte(CC112X_IOCFG3);
+	TI_WriteByte(CC112X_IOCFG3,0x87);
+	test[7]=TI_ReadByte(CC112X_IOCFG3);
+	/*
 	//temp sensor digital readout
 	TI_WriteByte(CC112X_DCFILT_CFG,0x40);
 	TI_WriteByte(CC112X_MDMCFG1 ,0x47);
@@ -331,7 +349,7 @@ int main (void)
 	test[6]=TI_ReadByte(CC112X_CHFILT_I0);
 	test[7]=TI_ReadByte(CC112X_CHFILT_I1);
 	test[8]=TI_ReadByte(CC112X_CHFILT_I2);
-//		test[8]=TI_ReadByte(CC112X_CHFILT_I2);
+//		test[8]=TI_ReadByte(CC112X_CHFILT_I2); */
 	
 //	Delay(0x2000);
 	while(1)
