@@ -51,6 +51,7 @@
 **********************************************************************/
 char test[22];
 uint32_t hede;
+char config;
 /**********************************************************************
 ***********							 Systick					  	*************************
 ***********************************************************************	
@@ -219,9 +220,9 @@ char TI_ReadByte(char addr)
 ***********							 TI_Write_brst							*******************
 ***********************************************************************	
 	Aim  : burst write to TI chip
-	NOTE :[ R/W bit (0)] + [ Burst bit (1)] + [6 bit addres]
+	NOTE :[ R/W bit (0)] + [ Burst bit (1)] + [6 bit addres stars with 0x2F00]
 **********************************************************************/
-int TI_Write_brst(char addr,char* buf,int len)
+int TI_Write_brst(int addr,char* buf,int len)
 {
    int i = 0;
 
@@ -244,7 +245,7 @@ int TI_Write_brst(char addr,char* buf,int len)
 	Aim  : burst read to TI chip
 	NOTE :[ R/W bit (1)] + [ Burst bit (1)] + [6 bit addres]
 **********************************************************************/
-int TI_Read_brst(char addr, char* buf,int len)
+int TI_Read_brst(int addr, char* buf,int len)
 {
 		int i = 0;
 
@@ -274,6 +275,53 @@ void TI_Command( char command )
 	  SpiStop();	                               								//Stop SPI by CSn High
 }
 
+void FillRegisters(void) 
+{
+		TI_WriteByte(CC112X_DCFILT_CFG,0x40);
+		TI_WriteByte(CC112X_IOCFG2, 0x06);
+		TI_WriteByte(CC112X_IOCFG1, 0xB0);
+		TI_WriteByte(CC112X_IOCFG0, 0x40);
+		TI_WriteByte(CC112X_SYNC_CFG1, 0x08);
+		TI_WriteByte(CC112X_DEVIATION_M, 0x48);
+		TI_WriteByte(CC112X_MODCFG_DEV_E, 0x0D);
+		TI_WriteByte(CC112X_DCFILT_CFG, 0x1C);
+		TI_WriteByte(CC112X_IQIC, 0x00);
+		TI_WriteByte(CC112X_CHAN_BW, 0x02);
+		TI_WriteByte(CC112X_SYMBOL_RATE2, 0x73);
+		TI_WriteByte(CC112X_AGC_REF, 0x36);
+		TI_WriteByte(CC112X_AGC_CS_THR, 0x19);
+		TI_WriteByte(CC112X_AGC_CFG1, 0x89);
+		TI_WriteByte(CC112X_AGC_CFG0, 0xCF);
+		TI_WriteByte(CC112X_FIFO_CFG, 0x00);
+		TI_WriteByte(CC112X_SETTLING_CFG, 0x03);
+		TI_WriteByte(CC112X_FS_CFG, 0x12);
+		TI_WriteByte(CC112X_PKT_CFG0, 0x20);
+		TI_WriteByte(CC112X_PA_CFG0, 0x7B);
+		TI_WriteByte(CC112X_PKT_LEN, 0xFF);
+		/******************************************************
+		extended registers are written here
+		*********************************************************/
+		config = 0x00; TI_Write_brst(CC112X_IF_MIX_CFG,&config,1);
+		config = 0x22; TI_Write_brst(CC112X_FREQOFF_CFG,&config,1);
+		config = 0x6C; TI_Write_brst(CC112X_FREQ2,&config,1);
+		config = 0x80; TI_Write_brst(CC112X_FREQ1,&config,1);
+		config = 0x00; TI_Write_brst(CC112X_FS_DIG1,&config,1);
+		config = 0x5F; TI_Write_brst(CC112X_FS_DIG0,&config,1);
+		config = 0x40; TI_Write_brst(CC112X_FS_CAL1,&config,1);
+		config = 0x0E; TI_Write_brst(CC112X_FS_CAL0,&config,1);
+		config = 0x03; TI_Write_brst(CC112X_FS_DIVTWO,&config,1);
+		config = 0x33; TI_Write_brst(CC112X_FS_DSM0,&config,1);
+		config = 0x17; TI_Write_brst(CC112X_FS_DVC0,&config,1);
+		config = 0x50; TI_Write_brst(CC112X_FS_PFD,&config,1);
+		config = 0x6E; TI_Write_brst(CC112X_FS_PRE,&config,1);
+		config = 0x14; TI_Write_brst(CC112X_FS_REG_DIV_CML,&config,1);
+		config = 0xAC; TI_Write_brst(CC112X_FS_SPARE,&config,1);
+		config = 0xB4; TI_Write_brst(CC112X_FS_VCO0,&config,1);
+		config = 0x03; TI_Write_brst(CC112X_LNA,&config,1);
+		config = 0x0E; TI_Write_brst(CC112X_XOSC5,&config,1);
+		config = 0x03; TI_Write_brst(CC112X_XOSC1,&config,1);
+		config = 0x10; TI_Write_brst(CC112X_PKT_CFG2,&config,1);
+}
 /**********************************************************************
 ***********							DelayUs						*********************
 ***********************************************************************	
