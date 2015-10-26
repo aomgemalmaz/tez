@@ -10,6 +10,7 @@
 
 #include "MKL25Z4.h"                    // Device header
 #include "TIspi.h"											//spi.h
+#include <math.h>
 
 
 #define 	WRITE_BURST     		0x40						//write burst
@@ -50,8 +51,11 @@
 	NOTE : 
 **********************************************************************/
 char test[22];
+char C[4];
 uint32_t hede;
 char config;
+char toto[22]="AMK POKUMANI";
+char got[22];
 /**********************************************************************
 ***********							 Systick					  	*************************
 ***********************************************************************	
@@ -192,11 +196,11 @@ void TI_Init(void)
 void TI_WriteByte( char addr,  char data)
 {
 //int dly;
-   SpiStart();																										//Start SPI by CSn Low
-	 wait_CHIP_RDYn; 																								//Wait for TI's christal to be stabilized
-	 SPI_Send(addr);																							  // Send 1 byte addr and write command
-	 SPI_Send(data);																								// Send 1 byte data 
-	 SpiStop();	                               											//Stop SPI by CSn High
+  SpiStart();																										//Start SPI by CSn Low
+	wait_CHIP_RDYn; 																								//Wait for TI's christal to be stabilized
+	SPI_Send(addr);																							  // Send 1 byte addr and write command
+	SPI_Send(data);																								// Send 1 byte data 
+	SpiStop();	                               											//Stop SPI by CSn High
 }
 
 /**********************************************************************
@@ -207,14 +211,14 @@ void TI_WriteByte( char addr,  char data)
 **********************************************************************/
 char TI_ReadByte(char addr)
 {
-   char data = 0;
+  char data = 0;
 	
-	 SpiStart();																										//Start SPI by CSn Low
-	 wait_CHIP_RDYn; 																								//Wait for TI's christal to be stabilized
-	 SPI_Send( READ_SINGLE | addr);																  // R/w bit (1) + Burst bit (0)+ 6 bit addres
-	 data = SPI_Send(0x00);             														// Data read (read 1byte data) via dummy write
-	 SpiStop();																											//Stop SPI by CSn High
-   return data;    
+	SpiStart();																										//Start SPI by CSn Low
+	wait_CHIP_RDYn; 																								//Wait for TI's christal to be stabilized
+	SPI_Send( READ_SINGLE | addr);																  // R/w bit (1) + Burst bit (0)+ 6 bit addres
+	data = SPI_Send(0x00);             														// Data read (read 1byte data) via dummy write
+	SpiStop();																											//Stop SPI by CSn High
+  return data;    
 }
 /**********************************************************************
 ***********							 TI_Write_brst							*******************
@@ -224,19 +228,19 @@ char TI_ReadByte(char addr)
 **********************************************************************/
 int TI_Write_brst(int addr,char* buf,int len)
 {
-   int i = 0;
+  int i = 0;
 
-		SpiStart();					                             	  	//Start SPI by CSn Low
-		wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
-		SPI_Send ( WRITE_BURST | addr );											// Send the adrr
+	SpiStart();					                             	  	//Start SPI by CSn Low
+	wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
+	SPI_Send ( WRITE_BURST | addr );											// Send the adrr
 		
-		for(i = 0; i < len; i++)              								// Burst Write the data 
-			 {
-				SPI_Send (buf[i]);
-			 }
+	for(i = 0; i < len; i++)              								// Burst Write the data 
+		{
+			SPI_Send (buf[i]);
+		}
 	 
-		 SpiStop();																						//Stop SPI by CSn High
-		 return len;  
+	SpiStop();																						//Stop SPI by CSn High
+	return len;  
 }
 
 /**********************************************************************
@@ -246,18 +250,18 @@ int TI_Write_brst(int addr,char* buf,int len)
 	NOTE :[ R/W bit (1)] + [ Burst bit (1)] + [6 bit addres]
 **********************************************************************/
 int TI_Read_brst(int addr, char* buf,int len)
-{
-		int i = 0;
+{	
+	int i = 0;
 
-		SpiStart();					                             	  	//Start SPI by CSn Low
-		wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
-		SPI_Send ( READ_BURST | addr );												// Address byte 1
-		for(i = 0; i < len; i++)                    				  // Write data in loop
-			{
-				buf[i] = SPI_Send(0x00);													//write data to buffer with size of "len"
-			}
-		SpiStop();																						//Stop SPI by CSn High
-		return len;
+	SpiStart();					                             	  	//Start SPI by CSn Low
+	wait_CHIP_RDYn; 																			//Wait for TI's christal to be stabilized
+	SPI_Send ( READ_BURST | addr );												// Address byte 1
+	for(i = 0; i < len; i++)                    				  // Write data in loop
+		{
+			buf[i] = SPI_Send(0x00);													//write data to buffer with size of "len"
+		}
+	SpiStop();																						//Stop SPI by CSn High
+	return len;
 }
 
 /**********************************************************************
@@ -269,24 +273,178 @@ int TI_Read_brst(int addr, char* buf,int len)
 **********************************************************************/
 void TI_Command( char command )
 {
-    SpiStart();																								//Start SPI by CSn Low
-	  wait_CHIP_RDYn; 																					//Wait for TI's christal to be stabilized
-	  SPI_Send(command);																				//Send chip command
-	  SpiStop();	                               								//Stop SPI by CSn High
+	SpiStart();																								//Start SPI by CSn Low
+	wait_CHIP_RDYn; 																					//Wait for TI's christal to be stabilized
+	SPI_Send(command);																				//Send chip command
+	SpiStop();	                               								//Stop SPI by CSn High
 }
 
-void FillRegisters(void) 
+char TI_Command_Read(char command)
+{
+	char ret;
+	SpiStart();																								//Start SPI by CSn Low
+	wait_CHIP_RDYn; 																					//Wait for TI's christal to be stabilized
+	SPI_Send(command|READ_SINGLE);														//Send chip command with READ bit
+	ret=SPI_Send(0x00);																				//send dummy byte so read status byte
+	SpiStop();	                               								//Stop SPI by CSn High
+	return ret;
+}
+/**********************************************************************
+***********							DelayUs						*********************
+***********************************************************************	
+	Aim  : Blind Delay
+	NOTE : microsecond delay (To be Calibrated)
+**********************************************************************/
+char DelayUs(long t)																
+{
+do
+	{
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+	__NOP();
+//	__NOP();
+//	__NOP();
+//	__NOP();
+	} while(--t);
+	return 1;
+}
+
+/**********************************************************************
+***********							Read Temp Sensor						*********************
+***********************************************************************	
+	Aim  : temp sensor digital readout
+	NOTE : see DN-403 Application note!!!
+**********************************************************************/
+int8_t getCelcius(void)
+{
+	//Variables
+	char RegValue = 0;
+	char marcStatus;
+	char writeByte;
+	uint32_t ADCValue_I = 0;
+	int8_t celsius = 0;
+//String to put radio in debug mode
+	char txBuffer[18] =
+	{0x0F,0x28,0x02,0x90,0x42,0x1B,0x7E,0x1F,0xFE,0xCD,0x06,0x1B,0x0E,0xA1,0x0E,0xA4,0x00,0x3F};
+	
+	//Constants for temperature calculation (for 3V input!!!)
+	float a = -3.3;
+	float b = 992;
+	float c = -2629.9;
+	
+	//temp sensor digital readout
+	TI_WriteByte(CC112X_DCFILT_CFG,0x40);
+	TI_WriteByte(CC112X_MDMCFG1 ,0x47);
+	TI_WriteByte(CC112X_CHAN_BW,0x81);
+	TI_WriteByte(CC112X_FREQ_IF_CFG,0x00);
+	config = 0x2A; TI_Write_brst(CC112X_ATEST,&config,1);
+	config = 0x07; TI_Write_brst(CC112X_ATEST_MODE,&config,1);
+	config = 0x07; TI_Write_brst(CC112X_GBIAS1,&config,1);
+	config = 0x01; TI_Write_brst(CC112X_PA_IFAMP_TEST,&config,1);
+	
+	TI_Command(CC112X_SRX);
+	Delay(100);
+//	TI_Command(CC112X_SNOP);
+//	test[0] = SPI_Send(0x00);
+	
+	//Read marcstate and wait until chip is in RX
+//	do {
+//	TI_Read_brst(CC112X_MARCSTATE, &marcStatus, 1);
+//	} while (marcStatus != 0x6D);
+	
+	// NOTE!!!!->set radio to debug mode to turn IFAMP off and read CHFILTreg
+	
+	// ***** Set radio in debug mode ***** 
+
+	TI_Write_brst(CC112X_BURST_RXFIFO,txBuffer,sizeof(txBuffer)); 	// Write debug init to tx fifo
+	
+	writeByte=0x01; TI_Write_brst( CC112X_BIST, &writeByte, 1);  // Run code from FIFO
+	
+	TI_Command(CC112X_SIDLE);  // Strobe IDLE
+	
+
+	writeByte=0x1F;
+	TI_WriteByte( CC112X_WOR_EVENT0_LSB, 0x1F); 	// Set IF AMP in PD
+	
+	TI_Command(CC112X_SXOFF); // Strobe SXOFF to copy command over
+	// ***** Set radio in debug mode END *****
+	
+		
+	//Wait until channel filter data is valid
+	do {
+	TI_Read_brst(CC112X_CHFILT_I2, &RegValue, 1);
+	} while (!RegValue&0x08);
+	//Read ADC value from CHFILT_I registers
+	TI_Read_brst(CC112X_CHFILT_I2, &RegValue, 1);
+	ADCValue_I = ((uint32_t)RegValue) << 16;
+	
+	TI_Read_brst(CC112X_CHFILT_I1, &RegValue, 1);
+	ADCValue_I |= (((uint32_t)RegValue) << 8) & 0x0000FF00;
+	
+	TI_Read_brst(CC112X_CHFILT_I0, &RegValue, 1);
+	ADCValue_I |= (uint32_t)(RegValue) & 0x000000FF;
+	
+	celsius = (int) ( (-b+sqrt(pow(b,2)-(4*a*(c-ADCValue_I)) ) ) / (2*a)); //Convert ADV value to celsius
+	//Return degrees celsius
+	return celsius;
+ 
+}	
+/**********************************************************************
+***********							 getRegisters									*****************
+***********************************************************************	
+	Aim  : 	read registers 
+	NOTE :	testing the register write
+**********************************************************************/
+char reg[100];
+void getReg_Test(void)
+{
+		reg[0] 	= TI_ReadByte(CC112X_DCFILT_CFG); //0x40
+		reg[1] 	=	TI_ReadByte(CC112X_IOCFG2 );		 //0x06
+		reg[2] 	=	TI_ReadByte(CC112X_IOCFG1) ;			//, 0xB0);
+		reg[3] 	=	TI_ReadByte(CC112X_IOCFG0) ;//, 0x40);
+		reg[4] 	=	TI_ReadByte(CC112X_SYNC_CFG1);//, 0x08);
+		reg[5] 	=	TI_ReadByte(CC112X_DEVIATION_M);//, 0x48);
+		reg[6] 	=	TI_ReadByte(CC112X_MODCFG_DEV_E);//, 0x0D);
+		reg[7] 	=	TI_ReadByte(CC112X_DCFILT_CFG);//, 0x1C);
+		reg[8] 	=	TI_ReadByte(CC112X_IQIC);//, 0x00);
+		reg[9] 	=	TI_ReadByte(CC112X_CHAN_BW);//, 0x02);
+		reg[10] =	TI_ReadByte(CC112X_SYMBOL_RATE2);//, 0x73);
+		reg[11] =	TI_ReadByte(CC112X_AGC_REF);//, 0x36);
+		reg[12] =	TI_ReadByte(CC112X_AGC_CS_THR);//, 0x19);
+		reg[13] =	TI_ReadByte(CC112X_AGC_CFG1);//, 0x89);
+		reg[14] =	TI_ReadByte(CC112X_AGC_CFG0);//, 0xCF);
+		reg[15] =	TI_ReadByte(CC112X_FIFO_CFG);//, 0x00);
+		reg[16] =	TI_ReadByte(CC112X_SETTLING_CFG);//, 0x03);
+		reg[17] =	TI_ReadByte(CC112X_FS_CFG);//, 0x12);
+		reg[18] =	TI_ReadByte(CC112X_PKT_CFG0);//, 0x20); 					//infinite packet length
+		reg[19] =	TI_ReadByte(CC112X_PA_CFG0);//, 0x7B);
+		reg[20] =	TI_ReadByte(CC112X_PKT_LEN);//, 0xFF);
+}
+/**********************************************************************
+***********							 setRegisters									*****************
+***********************************************************************	
+	Aim  : Set default registers 
+	NOTE :	
+**********************************************************************/
+void setRegisters(void) 
 {
 		TI_WriteByte(CC112X_DCFILT_CFG,0x40);
 		TI_WriteByte(CC112X_IOCFG2, 0x06);
 		TI_WriteByte(CC112X_IOCFG1, 0xB0);
 		TI_WriteByte(CC112X_IOCFG0, 0x40);
+		getReg_Test();
 		TI_WriteByte(CC112X_SYNC_CFG1, 0x08);
 		TI_WriteByte(CC112X_DEVIATION_M, 0x48);
 		TI_WriteByte(CC112X_MODCFG_DEV_E, 0x0D);
+		getReg_Test();
 		TI_WriteByte(CC112X_DCFILT_CFG, 0x1C);
+		getReg_Test();
 		TI_WriteByte(CC112X_IQIC, 0x00);
 		TI_WriteByte(CC112X_CHAN_BW, 0x02);
+		getReg_Test();
 		TI_WriteByte(CC112X_SYMBOL_RATE2, 0x73);
 		TI_WriteByte(CC112X_AGC_REF, 0x36);
 		TI_WriteByte(CC112X_AGC_CS_THR, 0x19);
@@ -295,7 +453,7 @@ void FillRegisters(void)
 		TI_WriteByte(CC112X_FIFO_CFG, 0x00);
 		TI_WriteByte(CC112X_SETTLING_CFG, 0x03);
 		TI_WriteByte(CC112X_FS_CFG, 0x12);
-		TI_WriteByte(CC112X_PKT_CFG0, 0x20);
+		TI_WriteByte(CC112X_PKT_CFG0, 0x20); 					//infinite packet length
 		TI_WriteByte(CC112X_PA_CFG0, 0x7B);
 		TI_WriteByte(CC112X_PKT_LEN, 0xFF);
 		/******************************************************
@@ -322,28 +480,8 @@ void FillRegisters(void)
 		config = 0x03; TI_Write_brst(CC112X_XOSC1,&config,1);
 		config = 0x10; TI_Write_brst(CC112X_PKT_CFG2,&config,1);
 }
-/**********************************************************************
-***********							DelayUs						*********************
-***********************************************************************	
-	Aim  : Blind Delay
-	NOTE : microsecond delay (To be Calibrated)
-**********************************************************************/
-char DelayUs(long t)																
-{
-do
-	{
-	__NOP();
-	__NOP();
-	__NOP();
-	__NOP();
-	__NOP();
-	__NOP();
-//	__NOP();
-//	__NOP();
-//	__NOP();
-	} while(--t);
-	return 1;
-}
+
+
 /**********************************************************************
 ***********							 Main Program						***********************
 ***********************************************************************	
@@ -371,33 +509,37 @@ int main (void)
 //	SpiStart();	
 //	SPI_Send(0x10);
 //	SpiStop();
-		test[0]=TI_ReadByte(0x0F);
-		test[1]=TI_ReadByte(0x0F);
-		test[2]=TI_ReadByte(0x0F);
-		test[3]=TI_ReadByte(0x0F);
-		test[4]=TI_ReadByte(0x0F);
-		
-	TI_WriteByte(CC112X_IOCFG3,0x87);
-	test[5]=TI_ReadByte(CC112X_IOCFG3);
-	TI_Command(CC112X_SRES);				//sofware reset 
+//		test[0]=TI_ReadByte(0x0F);
+//		test[1]=TI_ReadByte(0x0F);
+//		test[2]=TI_ReadByte(0x0F);
+//		test[3]=TI_ReadByte(0x0F);
+//		test[4]=TI_ReadByte(0x0F);
+//		
+//	TI_WriteByte(CC112X_IOCFG3,0x87);
+//	test[5]=TI_ReadByte(CC112X_IOCFG3);
+//	TI_Command(CC112X_SRES);				//sofware reset 
+//	
+//	test[6]=TI_ReadByte(CC112X_IOCFG3);
+//	TI_WriteByte(CC112X_IOCFG3,0x87);
+//	test[7]=TI_ReadByte(CC112X_IOCFG3);
+//	
+	TI_Write_brst(CC112X_BURST_TXFIFO,toto,20);
+	Delay(100);
+	TI_Read_brst(CC112X_RSSI1,got,1);
 	
-	test[6]=TI_ReadByte(CC112X_IOCFG3);
-	TI_WriteByte(CC112X_IOCFG3,0x87);
-	test[7]=TI_ReadByte(CC112X_IOCFG3);
-	/*
-	//temp sensor digital readout
-	TI_WriteByte(CC112X_DCFILT_CFG,0x40);
-	TI_WriteByte(CC112X_MDMCFG1 ,0x47);
-	TI_WriteByte(CC112X_CHAN_BW,0x81);
-	TI_WriteByte(CC112X_FREQ_IF_CFG,0x00);
-	TI_WriteByte(CC112X_ATEST,0x2A);
-	TI_WriteByte(CC112X_ATEST_MODE,0x07);
-	TI_WriteByte(CC112X_GBIAS1,0x07);
-	TI_WriteByte(CC112X_PA_IFAMP_TEST,0x01);
-	test[6]=TI_ReadByte(CC112X_CHFILT_I0);
-	test[7]=TI_ReadByte(CC112X_CHFILT_I1);
-	test[8]=TI_ReadByte(CC112X_CHFILT_I2);
-//		test[8]=TI_ReadByte(CC112X_CHFILT_I2); */
+//Delay(100);
+//TI_Command(CC112X_SRES);				//sofware reset 
+	
+	setRegisters();
+	getReg_Test();
+//		TI_WriteByte(CC112X_DCFILT_CFG,0x40);
+//		TI_WriteByte(CC112X_IOCFG2, 0x06);
+//		TI_WriteByte(CC112X_IOCFG1, 0xB0);
+//		TI_WriteByte(CC112X_IOCFG0, 0x40);
+	
+	test[0] = getCelcius();	 //Read temp sensor TEST			
+	
+
 	
 //	Delay(0x2000);
 	while(1)

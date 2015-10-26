@@ -183,10 +183,10 @@
 
                                                                                                                                                 
 /* DATA FIFO Access */
-#define CC112X_SINGLE_TXFIFO            0x003F      /*  TXFIFO  - Single accecss to Transmit FIFO */
-#define CC112X_BURST_TXFIFO             0x007F      /*  TXFIFO  - Burst accecss to Transmit FIFO  */
-#define CC112X_SINGLE_RXFIFO            0x00BF      /*  RXFIFO  - Single accecss to Receive FIFO  */
-#define CC112X_BURST_RXFIFO             0x00FF      /*  RXFIFO  - Busrrst ccecss to Receive FIFO  */
+#define CC112X_SINGLE_TXFIFO            0x003F      /*  TXFIFO  - Single access to Transmit FIFO */
+#define CC112X_BURST_TXFIFO             0x007F      /*  TXFIFO  - Burst access to Transmit FIFO  */
+#define CC112X_SINGLE_RXFIFO            0x00BF      /*  RXFIFO  - Single access to Receive FIFO  */
+#define CC112X_BURST_RXFIFO             0x00FF      /*  RXFIFO  - Busrrst access to Receive FIFO  */
 
 #define CC112X_LQI_CRC_OK_BM            0x80
 #define CC112X_LQI_EST_BM               0x7F
